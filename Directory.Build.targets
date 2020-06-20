@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
 
-	<PropertyGroup Condition="'$(InfoVersion)' == '' and '$(Suffix)'==''">
-		<Version>$(BaseVersion).$(FileRevision)</Version>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(InfoVersion)' == '' and '$(Suffix)'==''">
+    <Version>$(BaseVersion).$(FileRevision)</Version>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(InfoVersion)' == '' and '$(Suffix)'!=''">
-		<Version>$(BaseVersion)-$(Suffix)</Version>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(InfoVersion)' == '' and '$(Suffix)'!=''">
+    <Version>$(BaseVersion)-$(Suffix)</Version>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(InfoVersion)' != ''">
-		<Version>$(InfoVersion)</Version>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(InfoVersion)' != ''">
+    <Version>$(InfoVersion)</Version>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(FullVersion)' == ''">
-		<AssemblyVersion>$(BaseVersion).$(FileRevision)</AssemblyVersion>
-		<FileVersion>$(BaseVersion).$(FileRevision)</FileVersion>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(FullVersion)' == ''">
+    <AssemblyVersion>$(BaseVersion).$(FileRevision)</AssemblyVersion>
+    <FileVersion>$(BaseVersion).$(FileRevision)</FileVersion>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(FullVersion)' != ''">
-		<AssemblyVersion>$(FullVersion)</AssemblyVersion>
-		<FileVersion>$(FullVersion)</FileVersion>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(FullVersion)' != ''">
+    <AssemblyVersion>$(FullVersion)</AssemblyVersion>
+    <FileVersion>$(FullVersion)</FileVersion>
+  </PropertyGroup>
 
-	<ItemGroup Condition="'$(OutputType)' != 'Library'">
-		<PackageReference Remove="Microsoft.SourceLink.AzureRepos.Git" />
-	</ItemGroup>
+  <ItemGroup Condition="'$(OutputType)' != 'Library'">
+    <PackageReference Remove="Microsoft.SourceLink.AzureRepos.Git" />
+  </ItemGroup>
 
-	<PropertyGroup Condition="'$(OutputType)' != 'Library'">
-		<EnableSourceLink>false</EnableSourceLink>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(OutputType)' != 'Library'">
+    <EnableSourceLink>false</EnableSourceLink>
+  </PropertyGroup>
 
-	<!-- Fixes a bug in AZDO Builds for embedded pdbs during dotnet pack -->
-	<Target Name="FixupEmbeddedPdb" BeforeTargets="_CopyFilesMarkedCopyLocal" Condition="'@(ReferenceCopyLocalPaths)' != '' and '$(DebugType)'=='embedded'" >
-		<!-- Find files in the list that don't actually exist and remove them-->
-		<ItemGroup>
-			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)'=='.pdb' and !Exists('%(FullPath)')"  />
-		</ItemGroup>
-	</Target>	
+  <!-- Fixes a bug in AZDO Builds for embedded pdbs during dotnet pack -->
+  <Target Name="FixupEmbeddedPdb" BeforeTargets="_CopyFilesMarkedCopyLocal" Condition="'@(ReferenceCopyLocalPaths)' != '' and '$(DebugType)'=='embedded'" >
+    <!-- Find files in the list that don't actually exist and remove them-->
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)'=='.pdb' and !Exists('%(FullPath)')"  />
+    </ItemGroup>
+  </Target>  
 
 </Project>
