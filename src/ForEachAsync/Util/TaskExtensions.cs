@@ -5,8 +5,7 @@ using JetBrains.Annotations;
 
 namespace Floydcom.ForEachAsync.Util
 {
-    [PublicAPI]
-    public static class TaskExtensions
+    internal static class TaskExtensions
     {
         /// <summary>
         /// Asyncronusly waits for the specified task OR cancellation of the specified token
