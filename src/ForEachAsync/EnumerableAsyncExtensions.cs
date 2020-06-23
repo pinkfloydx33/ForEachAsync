@@ -249,6 +249,21 @@ namespace Floydcom.ForEachAsync
             return SelectAsyncImpl(sequence, UnboundedConcurrent, (item, _, __) => selector(item), token, scheduler);
         }
 
+
+        [NotNull]
+        public static IAsyncEnumerable<TResult> SelectEnumerableAsync<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, InstantHandle, ItemCanBeNull] this IEnumerable<T> sequence,
+            [NotNull] Func<T, Task<TResult>> selector,
+            CancellationToken token = default,
+            [CanBeNull] TaskScheduler scheduler = null)
+        {
+            Requires.NotNull(sequence, nameof(sequence), "Sequence cannot be null");
+            Requires.NotNull(selector, nameof(selector), "Selector cannot be null");
+
+            return SelectEnumerableAsyncImpl(sequence, UnboundedConcurrent, (item, _, __) => selector(item), token, scheduler);
+        }
+
+
         /// <summary>
         /// Concurrently invokes the specified asynchronous selector against all elements (and their indicies) in the sequence and asynchronously waits for completion
         /// of all queued work, returning the results. This method optionaly queues work using the specified Task scheduler.
@@ -275,6 +290,19 @@ namespace Floydcom.ForEachAsync
 
             return SelectAsyncImpl(sequence, UnboundedConcurrent, (item, idx, _) => selector(item, idx), token, scheduler);
         }
+
+        [NotNull]
+        public static IAsyncEnumerable<TResult> SelectEnumerbaleAsync<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, InstantHandle, ItemCanBeNull] this IEnumerable<T> sequence,
+            [NotNull] Func<T, long, Task<TResult>> selector,
+            CancellationToken token = default, [CanBeNull] TaskScheduler scheduler = null)
+        {
+            Requires.NotNull(sequence, nameof(sequence), "Sequence cannot be null");
+            Requires.NotNull(selector, nameof(selector), "Selector cannot be null");
+
+            return SelectEnumerableAsyncImpl(sequence, UnboundedConcurrent, (item, idx, _) => selector(item, idx), token, scheduler);
+        }
+
 
         /// <summary>
         /// Concurrently invokes the specified asynchronous selector against all elements (and their indicies) in the sequence and asynchronously waits for completion
@@ -341,6 +369,22 @@ namespace Floydcom.ForEachAsync
             return SelectAsyncImpl(sequence, degreesOfParallelism, (item, _, __) => selector(item), token, scheduler);
         }
 
+        [NotNull]
+        public static IAsyncEnumerable<TResult> SelectEnumerableAsync<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] this IEnumerable<T> sequence,
+            int degreesOfParallelism,
+            [NotNull] Func<T, Task<TResult>> selector,
+            CancellationToken token = default,
+            [CanBeNull] TaskScheduler scheduler = null)
+        {
+
+            Requires.NotNull(sequence, nameof(sequence), "Sequence cannot be null");
+            Requires.NotNull(selector, nameof(selector), "Selector cannot be null");
+            Requires.Range(degreesOfParallelism >= 0, nameof(degreesOfParallelism), "DOP must be greater than or equal to 0");
+
+            return SelectEnumerableAsyncImpl(sequence, degreesOfParallelism, (item, _, __) => selector(item), token, scheduler);
+        }
+
         /// <summary>
         /// Concurrently invokes the specified asynchronous selector against each element (and its index) in the sequence and asynchronously waits for completion
         /// of all queued work, returning the results. The actions may be performed serially or concurrently (all at once or limited by <paramref name="degreesOfParallelism"/>),
@@ -381,6 +425,23 @@ namespace Floydcom.ForEachAsync
             return SelectAsyncImpl(sequence, degreesOfParallelism, (item, idx, _) => selector(item, idx), token, scheduler);
         }
 
+        [NotNull]
+        public static IAsyncEnumerable<TResult> SelectEnumerableAsync<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] this IEnumerable<T> sequence,
+            int degreesOfParallelism,
+            [NotNull] Func<T, long, Task<TResult>> selector,
+            CancellationToken token = default,
+            [CanBeNull] TaskScheduler scheduler = null)
+        {
+
+            Requires.NotNull(sequence, nameof(sequence), "Sequence cannot be null");
+            Requires.NotNull(selector, nameof(selector), "Selector cannot be null");
+            Requires.Range(degreesOfParallelism >= 0, nameof(degreesOfParallelism), "DOP must be greater than or equal to 0");
+
+            return SelectEnumerableAsyncImpl(sequence, degreesOfParallelism, (item, idx, _) => selector(item, idx), token, scheduler);
+        }
+
+
         /// <summary>
         /// Concurrently invokes the specified asynchronous selector against each element (and its index) in the sequence and asynchronously waits for completion
         /// of all queued work, returning the results. The actions may be performed serially or concurrently (all at once or limited by <paramref name="degreesOfParallelism"/>),
@@ -420,6 +481,22 @@ namespace Floydcom.ForEachAsync
             Requires.Range(degreesOfParallelism >= 0, nameof(degreesOfParallelism), "DOP must be greater than or equal to 0");
 
             return SelectAsyncImpl(sequence, degreesOfParallelism, selector, token, scheduler);
+        }
+
+        [NotNull]
+        public static IAsyncEnumerable<TResult> SelectEnumerableAsync<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] this IEnumerable<T> sequence,
+            int degreesOfParallelism,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector,
+            CancellationToken token = default,
+            [CanBeNull] TaskScheduler scheduler = null)
+        {
+
+            Requires.NotNull(sequence, nameof(sequence), "Sequence cannot be null");
+            Requires.NotNull(selector, nameof(selector), "Selector cannot be null");
+            Requires.Range(degreesOfParallelism >= 0, nameof(degreesOfParallelism), "DOP must be greater than or equal to 0");
+
+            return SelectEnumerableAsyncImpl(sequence, degreesOfParallelism, selector, token, scheduler);
         }
 
 
@@ -579,6 +656,51 @@ namespace Floydcom.ForEachAsync
             };
         }
 
+        private static IAsyncEnumerable<TResult> SelectEnumerableAsyncImpl<T, TResult>(
+            this IEnumerable<T> sequence, int degreesOfParallelism,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector, CancellationToken token, [CanBeNull] TaskScheduler scheduler)
+        {
+            token.ThrowIfCancellationRequested();
+
+            return degreesOfParallelism switch
+            {
+                UnboundedConcurrent => UnboundedConcurrentEnumerableSelect(sequence, selector, token, scheduler),
+                Serial when scheduler is null => SerialEnumerableSelect(sequence, selector, token),
+                _ => BoundedConcurrentEnumableSelect(sequence, degreesOfParallelism, selector, token, scheduler)
+            };
+        }
+
+        private static async IAsyncEnumerable<TResult> SerialEnumerableSelect<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] IEnumerable<T> sequence,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector,
+            [EnumeratorCancellation] CancellationToken token)
+        {
+            await new SynchronizationContextRemover();
+
+            if (CollectionUtils.AsReadOnlyList(sequence) is { } list)
+            {
+                for (var i = 0; i < list.Count; ++i)
+                {
+                    if (token.CanBeCanceled)
+                        token.ThrowIfCancellationRequested();
+
+                    yield return await selector(list[i], i, token);
+                }
+            }
+            else
+            {
+                long index = 0;
+                foreach (var item in sequence)
+                {
+                    if (token.CanBeCanceled)
+                        token.ThrowIfCancellationRequested();
+
+                    yield return await selector(item, index++, token);
+                }
+            }
+        }
+
+
         [NotNull]
         private static async Task<TResult[]> SerialSelect<[CanBeNull] T, [CanBeNull] TResult>(
             [NotNull, ItemCanBeNull, InstantHandle] IEnumerable<T> sequence,
@@ -615,6 +737,17 @@ namespace Floydcom.ForEachAsync
 
                 return output.ToArray();
             }
+        }
+
+        private static async IAsyncEnumerable<TResult> UnboundedConcurrentEnumerableSelect<T, TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] IEnumerable<T> sequence,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector,
+            [EnumeratorCancellation] CancellationToken token,
+            [CanBeNull] TaskScheduler scheduler)
+        {
+            var result = await UnboundedConcurrentSelect(sequence, selector, token, scheduler);
+            foreach (var r in result)
+                yield return r;
         }
 
         [NotNull]
@@ -657,6 +790,65 @@ namespace Floydcom.ForEachAsync
                                             DenyAttach, scheduler).Unwrap();
         }
 
+
+        private static async IAsyncEnumerable<TResult> BoundedConcurrentEnumableSelect<T, TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] IEnumerable<T> sequence,
+            int degreesOfParallelism,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector,
+            [EnumeratorCancellation] CancellationToken token,
+            [CanBeNull] TaskScheduler scheduler)
+        {
+            // BUG? Piggy-backing on the BoundedConcurrentSelect forces output in order
+            // BUG-> correct! because we are just returning the tasks in the original order
+            // BUG-> Need option for "in order" returns using TaskCompletionSource
+            var result = await BoundedConcurrentSelect(sequence, degreesOfParallelism, selector, token, scheduler);
+            foreach (var r in result)
+                yield return r;
+
+        }
+
+
+        [NotNull]
+        private static Task<TResult[]> InOrderBoundedConcurrentSelect<[CanBeNull] T, [CanBeNull] TResult>(
+            [NotNull, ItemCanBeNull, InstantHandle] IEnumerable<T> sequence,
+            int degreesOfParallelism,
+            [NotNull] Func<T, long, CancellationToken, Task<TResult>> selector,
+            CancellationToken token,
+            [CanBeNull] TaskScheduler scheduler)
+        {
+
+            scheduler ??= TaskScheduler.Default;
+
+            // partitioned is harder/bit more of a mess when we need a return value
+            // delegate to the runtime's implementation. Use ConcurrentExclusiveSchedulePair
+            // to *wrap* the passed in scheduler and then use IT with a max DOP
+            var pair = new ConcurrentExclusiveSchedulerPair(scheduler, degreesOfParallelism);
+            var concurrentScheduler = pair.ConcurrentScheduler;
+
+            // TODO -> this is just some dummy work as a proof of concept
+            // TODO -> clean this up
+            var count = sequence.Count();
+
+            var tcs = Enumerable.Range(0, count).Select(c => new TaskCompletionSource<TResult>()).ToArray();
+            int index = -1;
+
+            _ = sequence.Select((x, i) => Task.Factory
+                                                        .StartNew(o =>
+                                                                  {
+                                                                      var r = ((SelectState<T, TResult>) o).Invoke();
+
+                                                                      r.ContinueWith(
+                                                                          s => tcs[Interlocked.Increment(ref index)].SetResult(s.Result),
+                                                                          TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                                                                      return r;
+                                                                  },
+                                                                  new SelectState<T, TResult>(x, i, token, selector), token,
+                                                                  DenyAttach, concurrentScheduler)
+                                                        .Unwrap()).ToArray();
+
+            return Task.WhenAll(tcs.Select(d => d.Task)).WaitAsync(token);
+        }
 
         [NotNull]
         private static Task<TResult[]> BoundedConcurrentSelect<[CanBeNull] T, [CanBeNull] TResult>(
